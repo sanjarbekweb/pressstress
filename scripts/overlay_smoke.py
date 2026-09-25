@@ -26,7 +26,7 @@ def find_start_button() -> tuple[int, int] | None:
     screen = adb("exec-out", "cat", "/sdcard/pressstress-ui.xml")
     root = ET.fromstring(screen)
     for node in root.iter("node"):
-        if node.attrib.get("text") == "Enable floating reset":
+        if "Enable floating reset" in node.attrib.get("text", ""):
             points = [int(value) for value in re.findall(r"\d+", node.attrib["bounds"])]
             return ((points[0] + points[2]) // 2, (points[1] + points[3]) // 2)
     return None
@@ -47,6 +47,10 @@ def main() -> None:
         adb("shell", "input", "swipe", "550", "1700", "550", "450", "350")
         time.sleep(1)
     if button is None:
+        print(adb("shell", "am", "get-current-user"))
+        print(adb("shell", "dumpsys", "activity", "activities")[-6000:])
+        print(adb("exec-out", "cat", "/sdcard/pressstress-ui.xml")[-6000:])
+        save_screenshot()
         raise AssertionError("Enable floating reset button was not found on the main screen")
 
     adb("shell", "input", "tap", str(button[0]), str(button[1]))
@@ -66,6 +70,11 @@ def main() -> None:
     if PACKAGE not in windows:
         raise AssertionError("No PressStress overlay window remains over the home screen")
 
+    output = save_screenshot()
+    print(f"Overlay started and remained on home screen: {output}")
+
+
+def save_screenshot() -> Path:
     screenshot = subprocess.run(
         ["adb", "exec-out", "screencap", "-p"],
         capture_output=True,
@@ -75,7 +84,7 @@ def main() -> None:
     output = Path("build/overlay-home.png")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_bytes(screenshot)
-    print(f"Overlay started and remained on home screen: {output}")
+    return output
 
 
 if __name__ == "__main__":
