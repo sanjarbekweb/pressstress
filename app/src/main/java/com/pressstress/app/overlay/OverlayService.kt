@@ -10,12 +10,14 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.hardware.display.DisplayManager
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.provider.Settings
 import android.view.Gravity
+import android.view.Display
 import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
@@ -46,14 +48,23 @@ class OverlayService : Service() {
             return START_NOT_STICKY
         }
 
-        startInForeground()
         if (!Settings.canDrawOverlays(this)) {
+            preferences.lastOverlayError = "Display over other apps permission is off"
             stopOverlay()
             return START_NOT_STICKY
         }
 
-        removeOverlay()
-        showOverlay()
+        try {
+            startInForeground()
+            removeOverlay()
+            showOverlay()
+            preferences.lastOverlayError = null
+        } catch (error: Exception) {
+            preferences.lastOverlayError =
+                "${error.javaClass.simpleName}: ${error.message ?: "overlay start failed"}"
+            stopOverlay()
+            return START_NOT_STICKY
+        }
         return START_STICKY
     }
 
@@ -62,6 +73,7 @@ class OverlayService : Service() {
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
         removeOverlay()
+        preferences.overlayEnabled = false
         super.onDestroy()
     }
 
@@ -80,7 +92,13 @@ class OverlayService : Service() {
 
     private fun showOverlay() {
         val overlayContext = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            createWindowContext(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, null)
+            val display = getSystemService(DisplayManager::class.java)
+                .getDisplay(Display.DEFAULT_DISPLAY)
+                ?: error("Primary display is unavailable")
+            createDisplayContext(display).createWindowContext(
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                null,
+            )
         } else {
             this
         }
@@ -156,6 +174,7 @@ class OverlayService : Service() {
         messageView = label
         windowManager.addView(button, buttonParams)
         windowManager.addView(label, messageParams)
+        isOverlayVisible = true
         preferences.overlayEnabled = true
         updateMessage(OverlayMessagePolicy.resting(preferences.messageTone, messageIndex))
     }
@@ -190,6 +209,7 @@ class OverlayService : Service() {
         messageView = null
         buttonParams = null
         messageParams = null
+        isOverlayVisible = false
     }
 
     private fun stopOverlay() {
@@ -238,6 +258,10 @@ class OverlayService : Service() {
     }
 
     companion object {
+        @Volatile
+        var isOverlayVisible: Boolean = false
+            private set
+
         const val ACTION_START = "com.pressstress.app.action.START_OVERLAY"
         const val ACTION_STOP = "com.pressstress.app.action.STOP_OVERLAY"
         private const val CHANNEL_ID = "floating_reset"

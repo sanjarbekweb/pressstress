@@ -338,18 +338,19 @@ class MainActivity : Activity() {
     }
 
     private fun startOverlay() {
+        preferences.lastOverlayError = null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIFICATION_PERMISSION_REQUEST)
         }
         OverlayService.start(this)
-        preferences.overlayEnabled = true
         refreshStatus()
+        startButton.postDelayed({ refreshStatus() }, 900L)
     }
 
     private fun restartIfRunning() {
-        if (preferences.overlayEnabled && Settings.canDrawOverlays(this)) {
+        if (OverlayService.isOverlayVisible && Settings.canDrawOverlays(this)) {
             OverlayService.start(this)
         }
     }
@@ -357,15 +358,18 @@ class MainActivity : Activity() {
     private fun refreshStatus() {
         if (!::statusTitle.isInitialized) return
         val permissionGranted = Settings.canDrawOverlays(this)
-        val active = permissionGranted && preferences.overlayEnabled
+        val active = permissionGranted && OverlayService.isOverlayVisible
+        val error = preferences.lastOverlayError
         statusDot.background = roundedColor(if (active) success else Color.rgb(104, 116, 150), 99f)
         statusTitle.text = when {
             active -> "Overlay active"
+            error != null -> "Could not show button"
             permissionGranted -> "Ready to start"
             else -> "Permission needed"
         }
         statusBody.text = when {
             active -> "Visible over apps and home"
+            error != null -> error
             permissionGranted -> "Android overlay access granted"
             else -> "You will approve it in Android settings"
         }

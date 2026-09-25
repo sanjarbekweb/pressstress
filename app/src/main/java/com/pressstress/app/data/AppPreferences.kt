@@ -38,6 +38,10 @@ class AppPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_OVERLAY_ENABLED, false)
         set(value) = prefs.edit().putBoolean(KEY_OVERLAY_ENABLED, value).apply()
 
+    var lastOverlayError: String?
+        get() = prefs.getString(KEY_OVERLAY_ERROR, null)
+        set(value) = prefs.edit().putString(KEY_OVERLAY_ERROR, value).apply()
+
     fun completionsToday(today: LocalDate = LocalDate.now()): Int {
         val date = prefs.getString(KEY_COUNT_DATE, null)
         return if (date == today.toString()) prefs.getInt(KEY_COUNT, 0) else 0
@@ -60,6 +64,7 @@ class AppPreferences(context: Context) {
         private const val KEY_SHOW_MESSAGE = "show_message"
         private const val KEY_OVERLAY_Y = "overlay_y"
         private const val KEY_OVERLAY_ENABLED = "overlay_enabled"
+        private const val KEY_OVERLAY_ERROR = "overlay_error"
         private const val KEY_COUNT_DATE = "completion_date"
         private const val KEY_COUNT = "completion_count"
     }
