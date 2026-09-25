@@ -42,7 +42,7 @@ class MainActivity : Activity() {
     private lateinit var stopButton: Button
     private var waitingForOverlayPermission = false
 
-    private val background = Color.rgb(7, 11, 22)
+    private val backgroundColor = Color.rgb(7, 11, 22)
     private val surface = Color.rgb(14, 21, 40)
     private val surfaceRaised = Color.rgb(20, 29, 54)
     private val primary = Color.rgb(124, 140, 255)
@@ -53,8 +53,8 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         preferences = AppPreferences(this)
-        window.statusBarColor = background
-        window.navigationBarColor = background
+        window.statusBarColor = backgroundColor
+        window.navigationBarColor = backgroundColor
         buildScreen()
     }
 
@@ -71,7 +71,7 @@ class MainActivity : Activity() {
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(22), dp(28), dp(22), dp(40))
-            setBackgroundColor(background)
+            setBackgroundColor(backgroundColor)
         }
 
         content.addView(TextView(this).apply {
@@ -122,7 +122,7 @@ class MainActivity : Activity() {
 
         val scroll = ScrollView(this).apply {
             isFillViewport = true
-            setBackgroundColor(background)
+            setBackgroundColor(backgroundColor)
             addView(content, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
         setContentView(scroll)
@@ -383,7 +383,11 @@ class MainActivity : Activity() {
         letterSpacing = 0.14f
     }
 
-    private fun roundedColor(fill: Int, radiusDp: Float, stroke: Int): GradientDrawable =
+    private fun roundedColor(
+        fill: Int,
+        radiusDp: Float,
+        stroke: Int = Color.TRANSPARENT,
+    ): GradientDrawable =
         GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = dp(radiusDp.toInt()).toFloat()
