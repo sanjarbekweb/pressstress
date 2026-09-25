@@ -39,12 +39,22 @@ def main() -> None:
     adb("shell", "am", "start", "-n", f"{PACKAGE}/.MainActivity")
     time.sleep(2)
 
+    size = adb("shell", "wm", "size")
+    match = re.search(r"(\d+)x(\d+)", size)
+    if match is None:
+        raise AssertionError(f"Could not read emulator screen size: {size}")
+    width, height = map(int, match.groups())
+
     button = None
     for _ in range(6):
         button = find_start_button()
         if button:
             break
-        adb("shell", "input", "swipe", "550", "1700", "550", "450", "350")
+        adb(
+            "shell", "input", "swipe",
+            str(width // 2), str(height * 4 // 5),
+            str(width // 2), str(height // 5), "350",
+        )
         time.sleep(1)
     if button is None:
         print(adb("shell", "am", "get-current-user"))

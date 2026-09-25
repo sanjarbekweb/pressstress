@@ -101,6 +101,8 @@ class MainActivity : Activity() {
         content.addView(space(16))
         content.addView(buildStatusCard())
         content.addView(space(24))
+        content.addView(buildActions())
+        content.addView(space(24))
         content.addView(sectionLabel("RESET LENGTH"))
         content.addView(space(10))
         content.addView(buildDurationCard())
@@ -110,8 +112,6 @@ class MainActivity : Activity() {
         content.addView(buildToneCard())
         content.addView(space(18))
         content.addView(buildMessageToggle())
-        content.addView(space(24))
-        content.addView(buildActions())
         content.addView(space(22))
         content.addView(TextView(this).apply {
             text = "PRIVATE BY DEFAULT\nNo account, internet access, app-history permission, or Accessibility Service. Your settings and count stay on this device."
