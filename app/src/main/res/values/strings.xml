@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PressStress</string>
+    <string name="notification_channel_name">Floating reset</string>
+    <string name="notification_channel_description">Keeps the user-enabled pause button available over other apps.</string>
+    <string name="notification_title">Pause button is active</string>
+    <string name="notification_text">Available over apps and your home screen</string>
+    <string name="stop">Stop</string>
+</resources>
