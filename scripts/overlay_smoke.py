@@ -74,11 +74,18 @@ def main() -> None:
     else:
         raise AssertionError(f"Overlay did not start: {preferences}")
 
-    adb("shell", "input", "keyevent", "HOME")
+    adb(
+        "shell", "am", "start",
+        "-a", "android.intent.action.MAIN",
+        "-c", "android.intent.category.HOME",
+    )
     time.sleep(2)
     windows = adb("shell", "dumpsys", "window", "windows", timeout=60)
     if PACKAGE not in windows:
         raise AssertionError("No PressStress overlay window remains over the home screen")
+    focus = [line for line in windows.splitlines() if "mCurrentFocus=" in line]
+    if not focus or any(PACKAGE in line for line in focus):
+        raise AssertionError(f"Home screen did not take focus: {focus}")
 
     output = save_screenshot()
     print(f"Overlay started and remained on home screen: {output}")
