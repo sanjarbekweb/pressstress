@@ -80,14 +80,17 @@ def main() -> None:
         "-c", "android.intent.category.HOME",
     )
     time.sleep(2)
+    output = save_screenshot()
     windows = adb("shell", "dumpsys", "window", "windows", timeout=60)
     if PACKAGE not in windows:
         raise AssertionError("No PressStress overlay window remains over the home screen")
-    focus = [line for line in windows.splitlines() if "mCurrentFocus=" in line]
-    if not focus or any(PACKAGE in line for line in focus):
-        raise AssertionError(f"Home screen did not take focus: {focus}")
+    adb("shell", "uiautomator", "dump", "/sdcard/pressstress-home.xml")
+    home_ui = adb("exec-out", "cat", "/sdcard/pressstress-home.xml")
+    if "A pause between" in home_ui:
+        raise AssertionError("PressStress main screen is still visible after opening home")
+    if "Hold to interrupt the urge" not in home_ui:
+        raise AssertionError("Floating hold button is missing over home screen")
 
-    output = save_screenshot()
     print(f"Overlay started and remained on home screen: {output}")
 
 
